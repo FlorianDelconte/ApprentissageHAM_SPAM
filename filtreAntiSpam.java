@@ -1,17 +1,128 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class filtreAntiSpam {
-	
-	protected ArrayList<String> dictionnaire;
+	//c'est mieux un tableau plutot qu'une liste car on vas faire beaucoup d'accès au tableau
+	protected static String[] dictionnaire;
 	public static void main(String[] args) {
 		//on charge le dictionnaire
 		charger_dictionnaire();
+		//lecture d'une message
+		lire_message("/src/base/baseapp/spam/13.txt");
+		
 	}
 	/**
-	 * 
-	 * @return true si l'opération de chargement du dictionnnaire c'est correctement passé
+	 * Chargement du dictionnaire
 	 */
-	public static boolean charger_dictionnaire(){
-		return false;
+	public static void charger_dictionnaire(){
+		System.out.println("Chargement du dictionnaire...");
+		//le nom du fichier dictionnaire
+		String fileName = System.getProperty("user.dir");
+		fileName+="/src/base/dictionnaire1000en.txt";
+		//Buffered reader
+		BufferedReader br = null;
+		//la ligne courante
+		String ligne;
+		try{
+			br = new BufferedReader(new FileReader(fileName));
+			int i=0;
+			//on parcourt jusqu'a la fin du fichier pour compter le nombre de ligne -> permet d'avoirs la taille du tableau dictionnaire
+			while ((ligne = br.readLine()) != null) {
+				if(ligne.length()>=3){
+					i++;
+				}
+			} 
+			//initialisation du tableau
+			dictionnaire=new String[i];
+			//on remet a 0 le comteur et on réinitialise le buffredReader
+			i=0;
+			br = new BufferedReader(new FileReader(fileName));
+			//on parcourt jusqu'a la fin du fichier et on ajouter chaque ligne au dico
+			while ((ligne = br.readLine()) != null) {
+				
+				//on recupère les mots supérieur a 2 lettres
+				if(ligne.length()>=3){
+					//On ajoute le mot au dico
+					dictionnaire[i]=ligne;
+					//on passe la case suivante du tableau
+					i++;
+				}
+			} 
+			
+		}catch(IOException e){
+			//On affiche l'exception
+			e.printStackTrace();
+		}finally {
+			//fermeture du buffered Reader
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		System.out.println("Termine. Nombre de mot :"+dictionnaire.length);
 	}
+	
+	/**
+	 * Fonction qui construit un vecteur de présence a partir d'un fichier
+	 * @param nomFichier de la forme '/src/base/baseapp/ham/X.txt' ou '/src/base/baseapp/spam/X.txt'(avex X un chiffre)
+	 * @return un vecteur de presence par rapport au dictionnaire : 1 si le mot est présent, 0 sinon
+	 */
+	public static int[] lire_message(String nomFichier){
+		System.out.println("lecteur du message "+nomFichier+"...");
+		//nombre de mot trouvé dans le fichier
+		int nbm=0;
+		//le vecteur de présence fait la taille du dictionnaire.
+		int [] presence=new int[dictionnaire.length];
+		//chemin du repertoire du projet
+		String fileName = System.getProperty("user.dir");
+		fileName+=nomFichier;
+		//Buffered reader
+		BufferedReader br = null;
+		//la ligne courante
+		String ligne;
+		try{
+			br = new BufferedReader(new FileReader(fileName));
+			//mot a rechercher
+			String motARechercher;
+			//D'abord on parcout le dictionnaire
+			for(int i=0;i<dictionnaire.length;i++){
+				//on recupère le mot du dictionnaire qu'on cherche
+				motARechercher=dictionnaire[i];
+
+				//enssuite on parcourt tout le fichier pour trouver le mot
+				//TODO : parcourir jusqu'a ce qu'on a trouvé le mot
+				while ((ligne = br.readLine()) != null ) {
+					
+					//TODO :C'est pas ouf comme condition je crois faut changer ça pour mieux reperer les mots
+					//si la ligne en majuscule contient le mot		
+					if(ligne.toUpperCase().contains(dictionnaire[i])){
+						//on met à 1 le tableau de presence a la postion du mot du dictionnaire 
+						presence[i]=1;
+						//on incremente le nombre de mot trouvé 
+						nbm++;
+					}
+				} 
+			}
+		}catch(Exception e){
+			//On affiche l'exception
+			e.printStackTrace();
+		}finally {
+			//fermeture du buffered Reader
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		System.out.println("Termine. Nombre de mot trouvé dans le message: "+nbm);
+		return presence;
+	}
+	
 }
