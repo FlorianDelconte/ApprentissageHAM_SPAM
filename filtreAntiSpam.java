@@ -10,7 +10,7 @@ public class filtreAntiSpam {
 		//on charge le dictionnaire
 		charger_dictionnaire();
 		//lecture d'une message
-		lire_message("/src/base/baseapp/spam/13.txt");
+		lire_message("/base/baseapp/spam/13.txt");
 		
 	}
 	/**
@@ -20,23 +20,48 @@ public class filtreAntiSpam {
 		System.out.println("Chargement du dictionnaire...");
 		//le nom du fichier dictionnaire
 		String fileName = System.getProperty("user.dir");
-		fileName+="/src/base/dictionnaire1000en.txt";
+		fileName+="/base/dictionnaire1000en.txt";
 		//Buffered reader
 		BufferedReader br = null;
 		//la ligne courante
 		String ligne;
+		
+		/*** MODIF ***/
+
+		ArrayList<String> dictionnaireListe = new ArrayList<>();
+
+		/*************/
+
 		try{
+
 			br = new BufferedReader(new FileReader(fileName));
+
 			int i=0;
+
 			//on parcourt jusqu'a la fin du fichier pour compter le nombre de ligne -> permet d'avoirs la taille du tableau dictionnaire
 			while ((ligne = br.readLine()) != null) {
 				if(ligne.length()>=3){
 					i++;
+
+					/*** MODIF ***/
+
+					dictionnaireListe.add(ligne.toUpperCase());
+
+					/*************/
 				}
-			} 
+			}
+
+			/*** MODIF ***/
+
+			dictionnaire = new String[dictionnaireListe.size()];
+			dictionnaire = dictionnaireListe.toArray(dictionnaire);
+
+			/*************/
+
+			/*
 			//initialisation du tableau
 			dictionnaire=new String[i];
-			//on remet a 0 le comteur et on réinitialise le buffredReader
+			//on remet a 0 le compteur et on réinitialise le buffredReader
 			i=0;
 			br = new BufferedReader(new FileReader(fileName));
 			//on parcourt jusqu'a la fin du fichier et on ajouter chaque ligne au dico
@@ -49,8 +74,12 @@ public class filtreAntiSpam {
 					//on passe la case suivante du tableau
 					i++;
 				}
-			} 
-			
+			}
+			*/
+
+			// avec modif : 6 milliseconds pour dico à 950 mots
+			// sans modif : 8 milliseconds ____________________
+
 		}catch(IOException e){
 			//On affiche l'exception
 			e.printStackTrace();
@@ -64,12 +93,12 @@ public class filtreAntiSpam {
 				}
 			}
 		}
-		System.out.println("Termine. Nombre de mot :"+dictionnaire.length);
+		System.out.println("Termine. Nombre de mots du dictionnaire : "+dictionnaire.length);
 	}
 	
 	/**
 	 * Fonction qui construit un vecteur de présence a partir d'un fichier
-	 * @param nomFichier de la forme '/src/base/baseapp/ham/X.txt' ou '/src/base/baseapp/spam/X.txt'(avex X un chiffre)
+	 * @param nomFichier de la forme '/base/baseapp/ham/X.txt' ou '/base/baseapp/spam/X.txt'(avex X un chiffre)
 	 * @return un vecteur de presence par rapport au dictionnaire : 1 si le mot est présent, 0 sinon
 	 */
 	public static int[] lire_message(String nomFichier){
@@ -86,7 +115,13 @@ public class filtreAntiSpam {
 		//la ligne courante
 		String ligne;
 		try{
+
 			br = new BufferedReader(new FileReader(fileName));
+
+			// PREMIERE VERSION : on prend chaque mot du dictionnaire
+			// 					et on regarde si il est dans le fichier
+
+			/*
 			//mot a rechercher
 			String motARechercher;
 			//D'abord on parcout le dictionnaire
@@ -108,6 +143,32 @@ public class filtreAntiSpam {
 					}
 				} 
 			}
+			*/
+			
+
+			// DEUXIEME VERSION : on parcourt le fichier, et on regarde
+			// 					si chaque mot est dans le dictionnaire
+			
+			while ((ligne = br.readLine()) != null ) {					
+				String[] mots = ligne.split(" ");
+				for (String mot : mots) {
+					mot = mot.toUpperCase();
+					boolean trouve = false;
+					int i = 0;
+					while (!trouve && i < dictionnaire.length) {
+						if (mot.equals(dictionnaire[i])) {
+							trouve = true;
+							presence[i] = 1;
+							nbm++;
+						}
+						i++;
+					}
+				}
+			}
+
+			// avec première version : environ 25 millisecondes mais 6 mots trouvés
+			// avec deuxième version : environ 35 millisecondes mais 60 mots trouvés
+
 		}catch(Exception e){
 			//On affiche l'exception
 			e.printStackTrace();
@@ -121,7 +182,7 @@ public class filtreAntiSpam {
 				}
 			}
 		}
-		System.out.println("Termine. Nombre de mot trouvé dans le message: "+nbm);
+		System.out.println("Termine. Nombre de mots trouvés dans le message : "+nbm);
 		return presence;
 	}
 	
