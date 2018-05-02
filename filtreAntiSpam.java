@@ -330,7 +330,7 @@ public class filtreAntiSpam {
 		double P_Xx_YHAM=0;
 
 		for(int j=0;j<presence.length;j++){
-			//Si le mot est j est présent dans le fichier spam
+			//Si le mot est j est présent dans le fichier ham
 			if(presence[j]==1){
 				//On ajoute à P(X=x|Y=HAM) le log de bjham
 				P_Xx_YHAM+=Math.log((double)(presenceGlobaleHAM[j]+1)/(nbHamApp+2));
