@@ -13,6 +13,9 @@ public class filtreAntiSpam {
 	// retient, pour chaque mot du dictionnaire, le nombre de fichier où il est présent
 	private static int[] presenceGlobaleSPAM;
 	private static int[] presenceGlobaleHAM;	
+	//probabilité a priori
+	private static double P_Yspam;
+	private static double P_Yham;
 
 	public static void main(String[] args) {
 		//on charge le dictionnaire
@@ -279,6 +282,28 @@ public class filtreAntiSpam {
 			System.out.println("\t - " + presenceGlobaleHAM[i] + " fois dans les HAM");			
 		}
 		
+		//Calcul des probabilité a priori : P(Y=SPAM)=(nombre de SPAM)/(nombre dexemple)
+		P_Yspam=(double)nbspam/(nbspam+nbham);
+		//P(Y=HAM)=1-P(Y=SPAM)
+		P_Yham=1-P_Yspam;
+		//System.out.println("proba a priori de spam :"+P_Yspam);
+		//System.out.println("proba a priori de ham :"+P_Yham);
+	}
+	/**
+	 * affiche si l'email est un spam ou un ham et affiche également l'erreur
+	 * @param nbSpamTest nombre de spam a tester
+	 * @param nbHamTest nombre de ham a tester
+	 */
+	public static void test(int nbSpamTest,int nbHamTest){
+		//le nouvel email est-il un SPAM ?
+		//pour le calcul des probabilité a Posteriori on a besoin de : P(X=x)=P(X=x|Y=SPAM)P(Y=SPAM)+P(X=x|Y=HAM)P(Y=HAM) (--->Formule des proba total)
+		// P(X=x|Y=SPAM)=produit de Bspam par Bham (sur j allant de 1 à nb nbspam)-->voir p52
+		// P(X=x|Y=HAM)=produit de Bspam par Bham (sur j allant de 1 à nb nbham)-->voir p52
+		//Le truc c'est que si on fait le produit de truc qui se rapporche beaucoup de 0 java vas simplifier en faisant 0*0
+		//Donc P(X=x|Y=SPAM)=LOG(produit de Bspam par Bham )(sur j allant de 1 à nb nbspam)
+		//ET   P(X=x|Y=HAM)=LOG(produit de Bspam par Bham )(sur j allant de 1 à nb nbham)--> logarithme d'un produit= somme des logarithme
+		//DONC : P(X=x|Y=SPAM)=LOG( Bspam)+ LOG(Bham) (sur j allant de 1 à nb nbspam)
+		//ET   P(X=x|Y=HAM)=LOG(Bspam) + LOG(Bham )(sur j allant de 1 à nb nbham)
 	}
 	
 }
