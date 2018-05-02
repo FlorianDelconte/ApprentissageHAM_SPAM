@@ -2,7 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.Scanner;   
 import java.io.File;
 
 public class filtreAntiSpam {
@@ -53,9 +53,10 @@ public class filtreAntiSpam {
 	public static void test_base(String baseDirectory, int nbappspam, int nbappham, int nbtestspam, int nbtestham) {
 		//on charge le dictionnaire
 		charger_dictionnaire();
+
 		
 		apprentissage(nbappspam,nbappham);
-		test(baseDirectory, nbtestspam,nbtestham,nbappspam,nbappham);
+		test(baseDirectory, nbtestspam,nbtestham);
 	}
 
 	public static void chargement_classifieur(String fileName) {
@@ -297,7 +298,7 @@ public class filtreAntiSpam {
 		File[] tabSpam=spamBaseAppDirectory.listFiles();
 		File fspam;
 
-		/**MODIF**/
+		
 		for(int j=0;j<nbspam;j++){
 			fspam=tabSpam[j];
 			//lecture d'un message
@@ -310,7 +311,7 @@ public class filtreAntiSpam {
 		for (int i = 0; i < probaPresenceMotSPAM.length; i++) {
 			probaPresenceMotSPAM[i] = (probaPresenceMotSPAM[i] + 1) / (nbspam + 2);
 		}
-		/*********/
+		
 		
 		/*for (File f : spamBaseAppDirectory.listFiles()) {
 			System.out.println(tabFile[20]);
@@ -450,7 +451,7 @@ public class filtreAntiSpam {
 		return b;
 		
 	}
-	public static void test(String baseDirectory, int nbSpamTest,int nbHamTest,int nbSpamApp,int nbHamApp){
+	public static void test(String baseDirectory, int nbSpamTest,int nbHamTest){
 		String directory = System.getProperty("user.dir");
 		File hamBaseTestDirectory = new File(directory + "/base/" + baseDirectory + "/ham/");
 		File[] tabHam=hamBaseTestDirectory.listFiles();
