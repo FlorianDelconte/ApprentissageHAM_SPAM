@@ -251,7 +251,7 @@ public class filtreAntiSpam {
 		}
 
 		for (int i = 0; i < probaPresenceMotSPAM.length; i++) {
-			probaPresenceMotSPAM[i] = probaPresenceMotSPAM[i] / nbspam;
+			probaPresenceMotSPAM[i] = (probaPresenceMotSPAM[i] + 1) / (nbspam + 2);
 		}
 		/*********/
 		
@@ -281,7 +281,7 @@ public class filtreAntiSpam {
 		}
 
 		for (int i = 0; i < probaPresenceMotHAM.length; i++) {
-			probaPresenceMotHAM[i] = probaPresenceMotHAM[i] / nbham;
+			probaPresenceMotHAM[i] = (probaPresenceMotHAM[i] + 1) / (nbham + 2);
 		}
 
 		/*for (File f : spamBaseAppDirectory.listFiles()) {
@@ -361,11 +361,11 @@ public class filtreAntiSpam {
 			//Si le mot est j est présent dans le fichier spam
 			if(presence[j]==1){
 				//On ajoute à P(X=x|Y=SPAM) le log de bjspam
-				P_Xx_YSPAM+=Math.log((double)(presenceGlobaleSPAM[j]+1)/(nbSpamApp+2));
+				P_Xx_YSPAM+=Math.log(probaPresenceMotSPAM[j]);
 			//Si le mot j n'est pas présent dans le fichier spam
 			}else{
 				//On ajoute à P(X=x|Y=SPAM) le log de 1-bjspam
-				P_Xx_YSPAM+=Math.log(1.-((double)(presenceGlobaleSPAM[j]+1)/(nbSpamApp+2)));
+				P_Xx_YSPAM+=Math.log(1.-probaPresenceMotSPAM[j]);
 			}
 		}
 		P_Xx_YSPAM+=Math.log(P_Yspam);
@@ -376,11 +376,11 @@ public class filtreAntiSpam {
 			//Si le mot est j est présent dans le fichier ham
 			if(presence[j]==1){
 				//On ajoute à P(X=x|Y=HAM) le log de bjham
-				P_Xx_YHAM+=Math.log((double)(presenceGlobaleHAM[j]+1)/(nbHamApp+2));
+				P_Xx_YHAM+=Math.log(probaPresenceMotHAM[j]);
 			//Si le mot j n'est pas présent dans le fichier spam
 			}else{
 				//On ajoute à P(X=x|Y=HAM) le log de 1-bjham
-				P_Xx_YHAM+=Math.log(1.-((double)(presenceGlobaleHAM[j]+1)/(nbHamApp+2)));
+				P_Xx_YHAM+=Math.log(1.-probaPresenceMotHAM[j]);
 			}
 		}
 		P_Xx_YHAM+=Math.log(P_Yham);
