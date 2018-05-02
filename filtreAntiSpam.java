@@ -54,7 +54,6 @@ public class filtreAntiSpam {
 		//on charge le dictionnaire
 		charger_dictionnaire();
 
-		
 		apprentissage(nbappspam,nbappham);
 		test(baseDirectory, nbtestspam,nbtestham);
 	}
@@ -453,7 +452,7 @@ public class filtreAntiSpam {
 	}
 	public static void test(String baseDirectory, int nbSpamTest,int nbHamTest){
 		String directory = System.getProperty("user.dir");
-		File hamBaseTestDirectory = new File(directory + "/base/" + baseDirectory + "/ham/");
+		File hamBaseTestDirectory = new File(directory + baseDirectory + "/ham/");
 		File[] tabHam=hamBaseTestDirectory.listFiles();
 		File fham;
 		System.out.println("TEST :");

@@ -227,7 +227,7 @@ public class apprend_filtre {
 		// parcourt des spam de la base d'apprentissage
 		double[] probaPresenceMotSPAM = new double[dictionnaire.length];
 		String directory = System.getProperty("user.dir");
-		File spamBaseAppDirectory = new File(directory + "/base/" + dossierApp + "/spam/");
+		File spamBaseAppDirectory = new File(directory + dossierApp + "/spam/");
 		//on recupère le tableau de fichier de spam
 		File[] tabSpam=spamBaseAppDirectory.listFiles();
 		File fspam;
