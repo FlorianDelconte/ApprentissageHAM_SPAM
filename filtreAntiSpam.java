@@ -11,8 +11,8 @@ public class filtreAntiSpam {
 	//c'est mieux un tableau plutot qu'une liste car on vas faire beaucoup d'accès au tableau
 	private static String[] dictionnaire;
 	// retient, pour chaque mot du dictionnaire, le nombre de fichier où il est présent
-	private static int[] presenceGlobaleSPAM;
-	private static int[] presenceGlobaleHAM;	
+	private static double[] probaPresenceMotSPAM;
+	private static double[] probaPresenceMotHAM;	
 	//probabilité a priori
 	private static double P_Yspam;
 	private static double P_Yham;
@@ -22,12 +22,14 @@ public class filtreAntiSpam {
 		charger_dictionnaire();
 		//saisi clavier du nombre de spam a apprendre
 		Scanner sc= new Scanner(System.in);
-		System.out.println("combien de SPAM dans Scannerla base d'apprentissage ? ");
+		System.out.println("combien de SPAM dans la base d'apprentissage ? ");
 		int nbspam=sc.nextInt();
 		//saisi clavier du nombre de ham a apprendre
-		System.out.println("combien de HAM dans Scannerla base d'apprentissage ? ");
+		System.out.println("combien de HAM dans la base d'apprentissage ? ");
 		int nbham=sc.nextInt();
 		apprentissage(nbham,nbspam);
+
+		test(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
 
 	}
 
@@ -226,20 +228,25 @@ public class filtreAntiSpam {
 		System.out.println("Apprentissage...");
 
 		// parcourt des spam de la base d'apprentissage
-		presenceGlobaleSPAM = new int[dictionnaire.length];
+		probaPresenceMotSPAM = new double[dictionnaire.length];
 		String directory = System.getProperty("user.dir");
 		File spamBaseAppDirectory = new File(directory + "/base/baseapp/spam/");
 		//on recupère le tableau de fichier de spam
 		File[] tabSpam=spamBaseAppDirectory.listFiles();
 		File fspam;
+
 		/**MODIF**/
 		for(int j=0;j<nbspam-1;j++){
 			fspam=tabSpam[j];
 			//lecture d'un message
 			int[] presence = lire_message("/base/baseapp/spam/" + fspam.getName());
-			for (int i = 0; i < presenceGlobaleSPAM.length; i++) {
-				presenceGlobaleSPAM[i] += presence[i];
+			for (int i = 0; i < probaPresenceMotSPAM.length; i++) {
+				probaPresenceMotSPAM[i] += presence[i];
 			}
+		}
+
+		for (int i = 0; i < probaPresenceMotSPAM.length; i++) {
+			probaPresenceMotSPAM[i] = probaPresenceMotSPAM[i] / nbspam;
 		}
 		/*********/
 		
@@ -248,38 +255,43 @@ public class filtreAntiSpam {
 			//lecture d'un message
 			int[] presence = lire_message("/base/baseapp/spam/" + f.getName());
 
-			for (int i = 0; i < presenceGlobaleSPAM.length; i++) {
-				presenceGlobaleSPAM[i] += presence[i];
+			for (int i = 0; i < probaPresenceMotSPAM.length; i++) {
+				probaPresenceMotSPAM[i] += presence[i];
 			}
 		}*/
 		
 		// parcourt des ham de la base d'apprentissage
-		presenceGlobaleHAM = new int[dictionnaire.length];
+		probaPresenceMotHAM = new double[dictionnaire.length];
 		File hamBaseAppDirectory = new File(directory + "/base/baseapp/ham/");
 		//on recupère le tableau de fichier de ham
-		File[] tabHam=spamBaseAppDirectory.listFiles();
+		File[] tabHam=hamBaseAppDirectory.listFiles();
 		File fham;
 		for(int j=0;j<nbham-1;j++){
 			fham=tabHam[j];
 			//lecture d'un message
 			int[] presence = lire_message("/base/baseapp/ham/" + fham.getName());
-			for (int i = 0; i < presenceGlobaleHAM.length; i++) {
-				presenceGlobaleHAM[i] += presence[i];
+			for (int i = 0; i < probaPresenceMotHAM.length; i++) {
+				probaPresenceMotHAM[i] += presence[i];
 			}
 		}
+
+		for (int i = 0; i < probaPresenceMotHAM.length; i++) {
+			probaPresenceMotHAM[i] = probaPresenceMotHAM[i] / nbham;
+		}
+
 		/*for (File f : spamBaseAppDirectory.listFiles()) {
 			//lecture d'un message
 			int[] presence = lire_message("/base/baseapp/ham/" + f.getName());
 
-			for (int i = 0; i < presenceGlobaleHAM.length; i++) {
-				presenceGlobaleHAM[i] += presence[i];
+			for (int i = 0; i < probaPresenceMotHAM.length; i++) {
+				probaPresenceMotHAM[i] += presence[i];
 			}
 		}*/
 		 
 		for (int i = 0; i < dictionnaire.length; i++) {
-			System.out.println("Le mot " + dictionnaire[i] + " apparait :");
-			System.out.println("\t - " + presenceGlobaleSPAM[i] + " fois dans les SPAM");			
-			System.out.println("\t - " + presenceGlobaleHAM[i] + " fois dans les HAM");			
+			System.out.println("Probabilités du mot : " + dictionnaire[i]);
+			System.out.println("\t - proba de trouver dans un SPAM : " + probaPresenceMotSPAM[i]);			
+			System.out.println("\t - proba de trouver dans un HAM : " + probaPresenceMotHAM[i]);			
 		}
 		
 		//Calcul des probabilité a priori : P(Y=SPAM)=(nombre de SPAM)/(nombre dexemple)
@@ -297,8 +309,36 @@ public class filtreAntiSpam {
 	public static void test(int nbSpamTest,int nbHamTest){
 		//le nouvel email est-il un SPAM ?
 		//pour le calcul des probabilité a Posteriori on a besoin de : P(X=x)=P(X=x|Y=SPAM)P(Y=SPAM)+P(X=x|Y=HAM)P(Y=HAM) (--->Formule des proba total)
+
+		String nomFichier = "/base/basetest/spam/0.txt";
+
 		// P(X=x|Y=SPAM)=produit de Bspam par Bham (sur j allant de 1 à nb nbspam)-->voir p52
+
+		// P(X = x | Y = SPAM)
+		double P_X_YSpam = 1;
+		int[] presence = lire_message(nomFichier);
+		for (int i = 0; i < dictionnaire.length; i++) {
+			if (presence[i] == 1) 
+				P_X_YSpam *= probaPresenceMotSPAM[i];
+			else
+				P_X_YSpam *= 1. - probaPresenceMotSPAM[i];
+		}
+
+		System.out.println("P(X = x | Y = SPAM) = " + P_X_YSpam);
+
 		// P(X=x|Y=HAM)=produit de Bspam par Bham (sur j allant de 1 à nb nbham)-->voir p52
+
+		double P_X_YHam = 1;
+		presence = lire_message(nomFichier);
+		for (int i = 0; i < dictionnaire.length; i++) {
+			if (presence[i] == 1) 
+				P_X_YHam *= probaPresenceMotHAM[i];
+			else
+				P_X_YHam *= 1. - probaPresenceMotHAM[i];
+		}
+
+		System.out.println("P(X = x | Y = HAM) = " + P_X_YHam);
+
 		//Le truc c'est que si on fait le produit de truc qui se rapporche beaucoup de 0 java vas simplifier en faisant 0*0
 		//Donc P(X=x|Y=SPAM)=LOG(produit de Bspam par Bham )(sur j allant de 1 à nb nbspam)
 		//ET   P(X=x|Y=HAM)=LOG(produit de Bspam par Bham )(sur j allant de 1 à nb nbham)--> logarithme d'un produit= somme des logarithme
