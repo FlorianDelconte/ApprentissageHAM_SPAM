@@ -10,6 +10,8 @@ public class filtreAntiSpam {
 
 	//c'est mieux un tableau plutot qu'une liste car on vas faire beaucoup d'accès au tableau
 	private static String[] dictionnaire;
+	// variable utilisee lors du chargement d'un classifieur existant
+	private static int tailleDictionnaire;
 	// retient, pour chaque mot du dictionnaire, le nombre de fichier où il est présent
 	private static double[] probaPresenceMotSPAM;
 	private static double[] probaPresenceMotHAM;	
@@ -18,20 +20,75 @@ public class filtreAntiSpam {
 	private static double P_Yham;
 
 	public static void main(String[] args) {
+		// On applique tout le processus : chargement du dictionnaire, apprentissage,
+		// test sur la base de test
+		if (args.length == 3) {
+			//saisi clavier du nombre de spam a apprendre
+			Scanner sc= new Scanner(System.in);
+			System.out.println("combien de SPAM dans la base d'apprentissage ? ");
+			int nbspam=sc.nextInt();
+			//saisi clavier du nombre de ham a apprendre
+			System.out.println("combien de HAM dans la base d'apprentissage ? ");
+			int nbham=sc.nextInt();
+
+			test_base(nbspam, nbham, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+		}
+
+		// On charge le classifieur depuis le nom de fichier en parametre 
+		// et on test sur un fichier
+		if (args.length == 2) {
+			String fileName = System.getProperty("user.dir");
+			fileName += "/" + args[0];
+			chargement_classifieur(fileName);
+			int[] presence = lire_message(args[1]);
+			if (testMessageX(presence)) {
+				System.out.println("D'après '"+ args[0] + "', le message '" + args[1] + "' est un SPAM !");
+			} else {
+				System.out.println("D'après '"+ args[0] + "', le message '" + args[1] + "' est un HAM !");
+			}
+		}
+		
+	}
+
+	public static void test_base(int nbappspam, int nbappham, int nbtestspam, int nbtestham) {
 		//on charge le dictionnaire
 		charger_dictionnaire();
-		//saisi clavier du nombre de spam a apprendre
-		Scanner sc= new Scanner(System.in);
-		System.out.println("combien de SPAM dans la base d'apprentissage ? ");
-		int nbspam=sc.nextInt();
-		//saisi clavier du nombre de ham a apprendre
-		System.out.println("combien de HAM dans la base d'apprentissage ? ");
-		int nbham=sc.nextInt();
+
 		
-		
-		apprentissage(nbspam,nbham);
-		test(500,500);
-		
+		apprentissage(nbappspam,nbappham);
+		test(nbtestspam,nbtestham);
+	}
+
+	public static void chargement_classifieur(String fileName) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(fileName));	
+
+			tailleDictionnaire = Integer.parseInt(br.readLine());
+
+			dictionnaire = new String[tailleDictionnaire];
+
+			for (int i = 0; i < tailleDictionnaire; i++) {
+				dictionnaire[i] = br.readLine();
+			}
+			
+			P_Yspam = Double.parseDouble(br.readLine());
+			P_Yham = Double.parseDouble(br.readLine());
+
+			probaPresenceMotSPAM = new double[tailleDictionnaire];
+			probaPresenceMotHAM = new double[tailleDictionnaire];
+
+			for (int i = 0; i < tailleDictionnaire; i++) {
+				probaPresenceMotSPAM[i] = Double.parseDouble(br.readLine());
+			}
+
+			for (int i = 0; i < tailleDictionnaire; i++) {
+				probaPresenceMotHAM[i] = Double.parseDouble(br.readLine());
+			}
+
+			br.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -74,7 +131,8 @@ public class filtreAntiSpam {
 
 			/*** MODIF ***/
 
-			dictionnaire = new String[dictionnaireListe.size()];
+			tailleDictionnaire = dictionnaireListe.size();
+			dictionnaire = new String[tailleDictionnaire];
 			dictionnaire = dictionnaireListe.toArray(dictionnaire);
 
 			/*************/
@@ -114,8 +172,8 @@ public class filtreAntiSpam {
 				}
 			}
 		}
-		System.out.println("Termine. Nombre de mots du dictionnaire : "+dictionnaire.length);
-	/*	for(int i=0;i<dictionnaire.length;i++){
+		System.out.println("Termine. Nombre de mots du dictionnaire : "+tailleDictionnaire);
+	/*	for(int i=0;i<tailleDictionnaire;i++){
 			System.out.println(dictionnaire[i]);
 		}*/
 	}
@@ -132,7 +190,7 @@ public class filtreAntiSpam {
 		//nombre de mot trouvé dans le fichier
 		int nbm=0;
 		//le vecteur de présence fait la taille du dictionnaire.
-		int [] presence=new int[dictionnaire.length];
+		int [] presence=new int[tailleDictionnaire];
 		//chemin du repertoire du projet
 		String fileName = System.getProperty("user.dir");
 		fileName+=nomFichier;
@@ -151,7 +209,7 @@ public class filtreAntiSpam {
 			//mot a rechercher
 			String motARechercher;
 			//D'abord on parcout le dictionnaire
-			for(int i=0;i<dictionnaire.length;i++){
+			for(int i=0;i<tailleDictionnaire;i++){
 				//on recupère le mot du dictionnaire qu'on cherche
 				motARechercher=dictionnaire[i];
 
@@ -187,7 +245,7 @@ public class filtreAntiSpam {
 					int i = 0;
 					// Tant qu'on a pas trouve ce mot dans le dictionnaire
 					// et qu'on a pas dépassé la taille du dictionnaire
-					while (!trouve && i < dictionnaire.length) {
+					while (!trouve && i < tailleDictionnaire) {
 						// Si le mot est le meme que le mot courant du dictionnaire
 						if (mot.equals(dictionnaire[i])) {
 							// On dit qu'on l'a trouve pour finir la boucle
@@ -233,7 +291,7 @@ public class filtreAntiSpam {
 		System.out.println("Apprentissage...");
 
 		// parcourt des spam de la base d'apprentissage
-		probaPresenceMotSPAM = new double[dictionnaire.length];
+		probaPresenceMotSPAM = new double[tailleDictionnaire];
 		String directory = System.getProperty("user.dir");
 		File spamBaseAppDirectory = new File(directory + "/base/baseapp/spam/");
 		//on recupère le tableau de fichier de spam
@@ -266,7 +324,7 @@ public class filtreAntiSpam {
 		}*/
 		
 		// parcourt des ham de la base d'apprentissage
-		probaPresenceMotHAM = new double[dictionnaire.length];
+		probaPresenceMotHAM = new double[tailleDictionnaire];
 		File hamBaseAppDirectory = new File(directory + "/base/baseapp/ham/");
 		//on recupère le tableau de fichier de ham
 		File[] tabHam=hamBaseAppDirectory.listFiles();
@@ -293,7 +351,7 @@ public class filtreAntiSpam {
 			}
 		}*/
 		 
-		/**for (int i = 0; i < dictionnaire.length; i++) {
+		/**for (int i = 0; i < tailleDictionnaire; i++) {
 			System.out.println("Le mot " + dictionnaire[i] + " apparait :");
 			System.out.println("\t - " + presenceGlobaleSPAM[i] + " fois dans les SPAM");			
 			System.out.println("\t - " + presenceGlobaleHAM[i] + " fois dans les HAM");			
@@ -324,7 +382,7 @@ public class filtreAntiSpam {
 		// P(X = x | Y = SPAM)
 		double P_X_YSpam = 1;
 		int[] presence = lire_message(nomFichier);
-		for (int i = 0; i < dictionnaire.length; i++) {
+		for (int i = 0; i < tailleDictionnaire; i++) {
 			if (presence[i] == 1) 
 				P_X_YSpam *= probaPresenceMotSPAM[i];
 			else
@@ -337,7 +395,7 @@ public class filtreAntiSpam {
 
 		double P_X_YHam = 1;
 		presence = lire_message(nomFichier);
-		for (int i = 0; i < dictionnaire.length; i++) {
+		for (int i = 0; i < tailleDictionnaire; i++) {
 			if (presence[i] == 1) 
 				P_X_YHam *= probaPresenceMotHAM[i];
 			else
