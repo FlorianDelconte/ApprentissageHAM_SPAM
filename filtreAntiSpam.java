@@ -22,13 +22,16 @@ public class filtreAntiSpam {
 		charger_dictionnaire();
 		//saisi clavier du nombre de spam a apprendre
 		Scanner sc= new Scanner(System.in);
-		System.out.println("combien de SPAM dans Scannerla base d'apprentissage ? ");
+		System.out.println("combien de SPAM dans la base d'apprentissage ? ");
 		int nbspam=sc.nextInt();
 		//saisi clavier du nombre de ham a apprendre
-		System.out.println("combien de HAM dans Scannerla base d'apprentissage ? ");
+		System.out.println("combien de HAM dans la base d'apprentissage ? ");
 		int nbham=sc.nextInt();
-		apprentissage(nbham,nbspam);
-
+		
+		
+		apprentissage(nbspam,nbham);
+		test(500,500,nbspam,nbham);
+		
 	}
 
 	/**
@@ -112,6 +115,9 @@ public class filtreAntiSpam {
 			}
 		}
 		System.out.println("Termine. Nombre de mots du dictionnaire : "+dictionnaire.length);
+	/*	for(int i=0;i<dictionnaire.length;i++){
+			System.out.println(dictionnaire[i]);
+		}*/
 	}
 	
 	/**
@@ -174,6 +180,7 @@ public class filtreAntiSpam {
 				// On récupère chaque mot de la ligne en retirant tous les symboles autour du mot (autre que des lettres)
 				String[] mots = ligne.split(regex);
 				for (String mot : mots) {
+								
 					// On met le mot en majuscules et on enlève les espaces autour
 					mot = mot.toUpperCase().trim();
 					boolean trouve = false;
@@ -212,7 +219,7 @@ public class filtreAntiSpam {
 			}
 		}
 
-		// System.out.println("Termine. Nombre de mots trouvés dans le message : "+nbm);
+		//System.out.println("Termine. Nombre de mots trouvés dans le message : "+nbm);
 
 		return presence;
 	}
@@ -221,7 +228,7 @@ public class filtreAntiSpam {
 	 * @param nbham nombre de message ham a apprendre
 	 * @param nbspam nombre de message spam a apprendre
 	 */
-	public static void apprentissage(int nbham,int nbspam){
+	public static void apprentissage(int nbspam,int nbham){
 		
 		System.out.println("Apprentissage...");
 
@@ -233,7 +240,7 @@ public class filtreAntiSpam {
 		File[] tabSpam=spamBaseAppDirectory.listFiles();
 		File fspam;
 		/**MODIF**/
-		for(int j=0;j<nbspam-1;j++){
+		for(int j=0;j<nbspam;j++){
 			fspam=tabSpam[j];
 			//lecture d'un message
 			int[] presence = lire_message("/base/baseapp/spam/" + fspam.getName());
@@ -257,9 +264,9 @@ public class filtreAntiSpam {
 		presenceGlobaleHAM = new int[dictionnaire.length];
 		File hamBaseAppDirectory = new File(directory + "/base/baseapp/ham/");
 		//on recupère le tableau de fichier de ham
-		File[] tabHam=spamBaseAppDirectory.listFiles();
+		File[] tabHam=hamBaseAppDirectory.listFiles();
 		File fham;
-		for(int j=0;j<nbham-1;j++){
+		for(int j=0;j<nbham;j++){
 			fham=tabHam[j];
 			//lecture d'un message
 			int[] presence = lire_message("/base/baseapp/ham/" + fham.getName());
@@ -276,11 +283,11 @@ public class filtreAntiSpam {
 			}
 		}*/
 		 
-		for (int i = 0; i < dictionnaire.length; i++) {
+		/**for (int i = 0; i < dictionnaire.length; i++) {
 			System.out.println("Le mot " + dictionnaire[i] + " apparait :");
 			System.out.println("\t - " + presenceGlobaleSPAM[i] + " fois dans les SPAM");			
 			System.out.println("\t - " + presenceGlobaleHAM[i] + " fois dans les HAM");			
-		}
+		}*/
 		
 		//Calcul des probabilité a priori : P(Y=SPAM)=(nombre de SPAM)/(nombre dexemple)
 		P_Yspam=(double)nbspam/(nbspam+nbham);
@@ -290,20 +297,99 @@ public class filtreAntiSpam {
 		//System.out.println("proba a priori de ham :"+P_Yham);
 	}
 	/**
-	 * affiche si l'email est un spam ou un ham et affiche également l'erreur
-	 * @param nbSpamTest nombre de spam a tester
-	 * @param nbHamTest nombre de ham a tester
+	 * 
+	 * @param nbSpamApp nombre de spam de la base apprentissage
+	 * @param nbHamApp nombre de ham de la base Apprentissage
+	 * @return true si c'est un SPAM
 	 */
-	public static void test(int nbSpamTest,int nbHamTest){
+	public static boolean testMessageX(int nbSpamApp,int nbHamApp, int[] presence){
 		//le nouvel email est-il un SPAM ?
 		//pour le calcul des probabilité a Posteriori on a besoin de : P(X=x)=P(X=x|Y=SPAM)P(Y=SPAM)+P(X=x|Y=HAM)P(Y=HAM) (--->Formule des proba total)
 		// P(X=x|Y=SPAM)=produit de Bspam par Bham (sur j allant de 1 à nb nbspam)-->voir p52
 		// P(X=x|Y=HAM)=produit de Bspam par Bham (sur j allant de 1 à nb nbham)-->voir p52
-		//Le truc c'est que si on fait le produit de truc qui se rapporche beaucoup de 0 java vas simplifier en faisant 0*0
-		//Donc P(X=x|Y=SPAM)=LOG(produit de Bspam par Bham )(sur j allant de 1 à nb nbspam)
+		//Le truc c'est que si on fait le produit de truc qui se rapporche beaucoup de 0 java vas simplifier en faisant 0*0=0 la tete a toto quoi
+		//Solution: P(X=x|Y=SPAM)=LOG(produit de Bspam par Bham )(sur j allant de 1 à nb nbspam)
 		//ET   P(X=x|Y=HAM)=LOG(produit de Bspam par Bham )(sur j allant de 1 à nb nbham)--> logarithme d'un produit= somme des logarithme
-		//DONC : P(X=x|Y=SPAM)=LOG( Bspam)+ LOG(Bham) (sur j allant de 1 à nb nbspam)
-		//ET   P(X=x|Y=HAM)=LOG(Bspam) + LOG(Bham )(sur j allant de 1 à nb nbham)
+		//DONC : 	P(X=x|Y=SPAM)=LOG( Bspam)+ LOG(Bham) (sur j allant de 1 à nb nbspam)
+		//ET   		P(X=x|Y=HAM)=LOG(Bspam) + LOG(Bham)(sur j allant de 1 à nb nbham)
+		boolean b;
+		double P_Xx_YSPAM=0;	
+		for(int j=0;j<presence.length;j++){
+			//Si le mot est j est présent dans le fichier spam
+			if(presence[j]==1){
+				//On ajoute à P(X=x|Y=SPAM) le log de bjspam
+				P_Xx_YSPAM+=Math.log((double)(presenceGlobaleSPAM[j]+1)/(nbSpamApp+2));
+			//Si le mot j n'est pas présent dans le fichier spam
+			}else{
+				//On ajoute à P(X=x|Y=SPAM) le log de 1-bjspam
+				P_Xx_YSPAM+=Math.log(1.-((double)(presenceGlobaleSPAM[j]+1)/(nbSpamApp+2)));
+			}
+		}
+		P_Xx_YSPAM+=Math.log(P_Yspam);
+	//	System.out.println(P_Xx_YSPAM);
+		double P_Xx_YHAM=0;
+
+		for(int j=0;j<presence.length;j++){
+			//Si le mot est j est présent dans le fichier spam
+			if(presence[j]==1){
+				//On ajoute à P(X=x|Y=HAM) le log de bjham
+				P_Xx_YHAM+=Math.log((double)(presenceGlobaleHAM[j]+1)/(nbHamApp+2));
+			//Si le mot j n'est pas présent dans le fichier spam
+			}else{
+				//On ajoute à P(X=x|Y=HAM) le log de 1-bjham
+				P_Xx_YHAM+=Math.log(1.-((double)(presenceGlobaleHAM[j]+1)/(nbHamApp+2)));
+			}
+		}
+		P_Xx_YHAM+=Math.log(P_Yham);
+	//	System.out.println(P_Xx_YHAM);
+		if(P_Xx_YSPAM>P_Xx_YHAM){
+			b=true;
+		}else{
+			b=false;
+		}
+		return b;
+		
+	}
+	public static void test(int nbSpamTest,int nbHamTest,int nbSpamApp,int nbHamApp){
+		String directory = System.getProperty("user.dir");
+		File hamBaseTestDirectory = new File(directory + "/base/basetest/ham/");
+		File[] tabHam=hamBaseTestDirectory.listFiles();
+		File fham;
+		System.out.println("TEST :");
+		//TEST de HAM
+		int errHam=0;
+		for(int i=0;i<nbHamTest;i++){
+			fham=tabHam[i];
+			//lecture d'un message dans la base de test
+			int[] presence = lire_message("/base/basetest/ham/" + fham.getName());
+			if(testMessageX(nbSpamApp,nbHamApp,presence)){
+				System.out.println("HAM numéro "+i+" identifié comme un SPAM ***erreur***");
+				errHam++;
+			}else{
+				System.out.println("HAM numéro "+i+" identifié comme un HAM");
+			}
+		}
+		//TEST de SPAM
+		int errSpam=0;
+		File spamBaseTestDirectory = new File(directory + "/base/basetest/spam/");
+		File[] tabSpam=spamBaseTestDirectory.listFiles();
+		File fspam;
+		for(int i=0;i<nbSpamTest;i++){
+			fspam=tabSpam[i];
+			//lecture d'un message dans la base de test
+			int[] presence = lire_message("/base/basetest/spam/" + fspam.getName());
+			if(testMessageX(nbSpamApp,nbHamApp,presence)){
+				System.out.println("SPAM numéro "+i+" identifié comme un SPAM");
+			}else{
+				System.out.println("SPAM numéro "+i+"identifié comme un HAM  ***erreur***");
+				errSpam++;
+			}
+		}
+		System.out.println("Erreur de test sur les "+nbHamTest+" HAM : "+((double)errHam/nbHamTest)*100);
+		System.out.println("Erreur de test sur les "+nbSpamTest+" SPAM : "+((double)errSpam/nbSpamTest)*100);
+		int nbHamSpamTestTotal=nbHamTest+nbSpamTest;
+		int errTotal=errHam+errSpam;
+		System.out.println("Erreur de test sur les "+nbHamSpamTestTotal+" mails : "+((double)errTotal/nbHamSpamTestTotal)*100);
 	}
 	
 }
