@@ -2,20 +2,58 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.io.File;
 
 public class filtreAntiSpam {
 	private final static String regex = "[\\s\\<\\>\\[\\]\\,\\?\\;\\.\\:\\/\\!\\§\\*\\µ\\$\\£\\^\\¨\\%\\@\\)\\(\\=\\+\\{\\'\\}\\|\\#\\-\\\"\\.\\_\\`\\[\\]\\&\\°\\\\[0-9]]+";
 
 	//c'est mieux un tableau plutot qu'une liste car on vas faire beaucoup d'accès au tableau
-	protected static String[] dictionnaire;
+	private static String[] dictionnaire;
+	// retient, pour chaque mot du dictionnaire, le nombre de fichier où il est présent
+	private static int[] presenceGlobaleSPAM;
+	private static int[] presenceGlobaleHAM;	
 
 	public static void main(String[] args) {
 		//on charge le dictionnaire
 		charger_dictionnaire();
-		//lecture d'une message
-		lire_message("/base/baseapp/spam/13.txt");
+
+		System.out.println("Apprentissage...");
+
+		// parcourt des spam de la base d'apprentissage
+		presenceGlobaleSPAM = new int[dictionnaire.length];
+		String directory = System.getProperty("user.dir");
+		File spamBaseAppDirectory = new File(directory + "/base/baseapp/spam/");
+
+		for (File f : spamBaseAppDirectory.listFiles()) {
+			//lecture d'un message
+			int[] presence = lire_message("/base/baseapp/spam/" + f.getName());
+
+			for (int i = 0; i < presenceGlobaleSPAM.length; i++) {
+				presenceGlobaleSPAM[i] += presence[i];
+			}
+		}
+
+		// parcourt des ham de la base d'apprentissage
+		presenceGlobaleHAM = new int[dictionnaire.length];
+		File hamBaseAppDirectory = new File(directory + "/base/baseapp/ham/");
+
+		for (File f : spamBaseAppDirectory.listFiles()) {
+			//lecture d'un message
+			int[] presence = lire_message("/base/baseapp/ham/" + f.getName());
+
+			for (int i = 0; i < presenceGlobaleHAM.length; i++) {
+				presenceGlobaleHAM[i] += presence[i];
+			}
+		}
+
+		for (int i = 0; i < dictionnaire.length; i++) {
+			System.out.println("Le mot " + dictionnaire[i] + " apparait :");
+			System.out.println("\t - " + presenceGlobaleSPAM[i] + " fois dans les SPAM");			
+			System.out.println("\t - " + presenceGlobaleHAM[i] + " fois dans les HAM");			
+		}
 		
 	}
+
 	/**
 	 * Chargement du dictionnaire
 	 */
@@ -43,12 +81,12 @@ public class filtreAntiSpam {
 
 			//on parcourt jusqu'a la fin du fichier pour compter le nombre de ligne -> permet d'avoirs la taille du tableau dictionnaire
 			while ((ligne = br.readLine()) != null) {
-				if(ligne.length()>=3){
+				if(ligne.trim().length()>=3){
 					i++;
 
 					/*** MODIF ***/
 
-					dictionnaireListe.add(ligne.toUpperCase());
+					dictionnaireListe.add(ligne.toUpperCase().trim());
 
 					/*************/
 				}
@@ -105,7 +143,9 @@ public class filtreAntiSpam {
 	 * @return un vecteur de presence par rapport au dictionnaire : 1 si le mot est présent, 0 sinon
 	 */
 	public static int[] lire_message(String nomFichier){
-		System.out.println("lecteur du message "+nomFichier+"...");
+
+		// System.out.println("lecteur du message "+nomFichier+"...");
+
 		//nombre de mot trouvé dans le fichier
 		int nbm=0;
 		//le vecteur de présence fait la taille du dictionnaire.
@@ -194,7 +234,9 @@ public class filtreAntiSpam {
 				}
 			}
 		}
-		System.out.println("Termine. Nombre de mots trouvés dans le message : "+nbm);
+
+		// System.out.println("Termine. Nombre de mots trouvés dans le message : "+nbm);
+
 		return presence;
 	}
 	
