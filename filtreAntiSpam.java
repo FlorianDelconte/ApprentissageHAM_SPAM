@@ -31,7 +31,7 @@ public class filtreAntiSpam {
 			System.out.println("combien de HAM dans la base d'apprentissage ? ");
 			int nbham=sc.nextInt();
 
-			test_base(nbspam, nbham, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+			test_base(args[0], nbspam, nbham, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
 		}
 
 		// On charge le classifieur depuis le nom de fichier en parametre 
@@ -50,12 +50,12 @@ public class filtreAntiSpam {
 		
 	}
 
-	public static void test_base(int nbappspam, int nbappham, int nbtestspam, int nbtestham) {
+	public static void test_base(String baseDirectory, int nbappspam, int nbappham, int nbtestspam, int nbtestham) {
 		//on charge le dictionnaire
 		charger_dictionnaire();
 		
 		apprentissage(nbappspam,nbappham);
-		test(nbtestspam,nbtestham,nbappspam,nbappham);
+		test(baseDirectory, nbtestspam,nbtestham,nbappspam,nbappham);
 	}
 
 	public static void chargement_classifieur(String fileName) {
@@ -450,9 +450,9 @@ public class filtreAntiSpam {
 		return b;
 		
 	}
-	public static void test(int nbSpamTest,int nbHamTest,int nbSpamApp,int nbHamApp){
+	public static void test(String baseDirectory, int nbSpamTest,int nbHamTest,int nbSpamApp,int nbHamApp){
 		String directory = System.getProperty("user.dir");
-		File hamBaseTestDirectory = new File(directory + "/base/basetest/ham/");
+		File hamBaseTestDirectory = new File(directory + "/base/" + baseDirectory + "/ham/");
 		File[] tabHam=hamBaseTestDirectory.listFiles();
 		File fham;
 		System.out.println("TEST :");
