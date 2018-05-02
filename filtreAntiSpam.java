@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class filtreAntiSpam {
+	private final static String regex = "[\\s\\<\\>\\[\\]\\,\\?\\;\\.\\:\\/\\!\\§\\*\\µ\\$\\£\\^\\¨\\%\\@\\)\\(\\=\\+\\{\\'\\}\\|\\#\\-\\\"\\.\\_\\`\\[\\]\\&\\°\\\\[0-9]]+";
+
 	//c'est mieux un tableau plutot qu'une liste car on vas faire beaucoup d'accès au tableau
 	protected static String[] dictionnaire;
+
 	public static void main(String[] args) {
 		//on charge le dictionnaire
 		charger_dictionnaire();
@@ -149,16 +152,25 @@ public class filtreAntiSpam {
 			// DEUXIEME VERSION : on parcourt le fichier, et on regarde
 			// 					si chaque mot est dans le dictionnaire
 			
-			while ((ligne = br.readLine()) != null ) {					
-				String[] mots = ligne.split(" ");
+			// On parcourt chaque ligne du fichier
+			while ((ligne = br.readLine()) != null ) {	
+				// On récupère chaque mot de la ligne en retirant tous les symboles autour du mot (autre que des lettres)
+				String[] mots = ligne.split(regex);
 				for (String mot : mots) {
-					mot = mot.toUpperCase();
+					// On met le mot en majuscules et on enlève les espaces autour
+					mot = mot.toUpperCase().trim();
 					boolean trouve = false;
 					int i = 0;
+					// Tant qu'on a pas trouve ce mot dans le dictionnaire
+					// et qu'on a pas dépassé la taille du dictionnaire
 					while (!trouve && i < dictionnaire.length) {
+						// Si le mot est le meme que le mot courant du dictionnaire
 						if (mot.equals(dictionnaire[i])) {
+							// On dit qu'on l'a trouve pour finir la boucle
 							trouve = true;
+							// On met sa presence à 1 dans le tableau des presences							
 							presence[i] = 1;
+							// On augmente le nombre de mots trouves
 							nbm++;
 						}
 						i++;
