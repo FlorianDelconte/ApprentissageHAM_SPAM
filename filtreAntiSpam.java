@@ -2,7 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.Scanner;   
 import java.io.File;
 
 public class filtreAntiSpam {
@@ -30,7 +30,7 @@ public class filtreAntiSpam {
 		
 		
 		apprentissage(nbspam,nbham);
-		test(500,500,nbspam,nbham);
+		test(500,500);
 		
 	}
 
@@ -240,7 +240,7 @@ public class filtreAntiSpam {
 		File[] tabSpam=spamBaseAppDirectory.listFiles();
 		File fspam;
 
-		/**MODIF**/
+		
 		for(int j=0;j<nbspam;j++){
 			fspam=tabSpam[j];
 			//lecture d'un message
@@ -253,7 +253,7 @@ public class filtreAntiSpam {
 		for (int i = 0; i < probaPresenceMotSPAM.length; i++) {
 			probaPresenceMotSPAM[i] = (probaPresenceMotSPAM[i] + 1) / (nbspam + 2);
 		}
-		/*********/
+		
 		
 		/*for (File f : spamBaseAppDirectory.listFiles()) {
 			System.out.println(tabFile[20]);
@@ -302,7 +302,7 @@ public class filtreAntiSpam {
 		//Calcul des probabilité a priori : P(Y=SPAM)=(nombre de SPAM)/(nombre dexemple)
 		P_Yspam=(double)nbspam/(nbspam+nbham);
 		//P(Y=HAM)=1-P(Y=SPAM)
-		P_Yham=1-P_Yspam;
+		P_Yham=1.-P_Yspam;
 		//System.out.println("proba a priori de spam :"+P_Yspam);
 		//System.out.println("proba a priori de ham :"+P_Yham);
 	}
@@ -312,7 +312,7 @@ public class filtreAntiSpam {
 	 * @param nbHamApp nombre de ham de la base Apprentissage
 	 * @return true si c'est un SPAM
 	 */
-	public static boolean testMessageX(int nbSpamApp,int nbHamApp, int[] presence){
+	public static boolean testMessageX(int[] presence){
 		//le nouvel email est-il un SPAM ?
 		//pour le calcul des probabilité a Posteriori on a besoin de : P(X=x)=P(X=x|Y=SPAM)P(Y=SPAM)+P(X=x|Y=HAM)P(Y=HAM) (--->Formule des proba total)
 
@@ -393,7 +393,7 @@ public class filtreAntiSpam {
 		return b;
 		
 	}
-	public static void test(int nbSpamTest,int nbHamTest,int nbSpamApp,int nbHamApp){
+	public static void test(int nbSpamTest,int nbHamTest){
 		String directory = System.getProperty("user.dir");
 		File hamBaseTestDirectory = new File(directory + "/base/basetest/ham/");
 		File[] tabHam=hamBaseTestDirectory.listFiles();
@@ -405,7 +405,7 @@ public class filtreAntiSpam {
 			fham=tabHam[i];
 			//lecture d'un message dans la base de test
 			int[] presence = lire_message("/base/basetest/ham/" + fham.getName());
-			if(testMessageX(nbSpamApp,nbHamApp,presence)){
+			if(testMessageX(presence)){
 				System.out.println("HAM numéro "+i+" identifié comme un SPAM ***erreur***");
 				errHam++;
 			}else{
@@ -421,10 +421,10 @@ public class filtreAntiSpam {
 			fspam=tabSpam[i];
 			//lecture d'un message dans la base de test
 			int[] presence = lire_message("/base/basetest/spam/" + fspam.getName());
-			if(testMessageX(nbSpamApp,nbHamApp,presence)){
+			if(testMessageX(presence)){
 				System.out.println("SPAM numéro "+i+" identifié comme un SPAM");
 			}else{
-				System.out.println("SPAM numéro "+i+"identifié comme un HAM  ***erreur***");
+				System.out.println("SPAM numéro "+i+" identifié comme un HAM  ***erreur***");
 				errSpam++;
 			}
 		}
