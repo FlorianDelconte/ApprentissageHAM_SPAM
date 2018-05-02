@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.io.File;
 
 public class filtreAntiSpam {
@@ -16,42 +17,15 @@ public class filtreAntiSpam {
 	public static void main(String[] args) {
 		//on charge le dictionnaire
 		charger_dictionnaire();
+		//saisi clavier du nombre de spam a apprendre
+		Scanner sc= new Scanner(System.in);
+		System.out.println("combien de SPAM dans Scannerla base d'apprentissage ? ");
+		int nbspam=sc.nextInt();
+		//saisi clavier du nombre de ham a apprendre
+		System.out.println("combien de HAM dans Scannerla base d'apprentissage ? ");
+		int nbham=sc.nextInt();
+		apprentissage(nbham,nbspam);
 
-		System.out.println("Apprentissage...");
-
-		// parcourt des spam de la base d'apprentissage
-		presenceGlobaleSPAM = new int[dictionnaire.length];
-		String directory = System.getProperty("user.dir");
-		File spamBaseAppDirectory = new File(directory + "/base/baseapp/spam/");
-
-		for (File f : spamBaseAppDirectory.listFiles()) {
-			//lecture d'un message
-			int[] presence = lire_message("/base/baseapp/spam/" + f.getName());
-
-			for (int i = 0; i < presenceGlobaleSPAM.length; i++) {
-				presenceGlobaleSPAM[i] += presence[i];
-			}
-		}
-
-		// parcourt des ham de la base d'apprentissage
-		presenceGlobaleHAM = new int[dictionnaire.length];
-		File hamBaseAppDirectory = new File(directory + "/base/baseapp/ham/");
-
-		for (File f : spamBaseAppDirectory.listFiles()) {
-			//lecture d'un message
-			int[] presence = lire_message("/base/baseapp/ham/" + f.getName());
-
-			for (int i = 0; i < presenceGlobaleHAM.length; i++) {
-				presenceGlobaleHAM[i] += presence[i];
-			}
-		}
-
-		for (int i = 0; i < dictionnaire.length; i++) {
-			System.out.println("Le mot " + dictionnaire[i] + " apparait :");
-			System.out.println("\t - " + presenceGlobaleSPAM[i] + " fois dans les SPAM");			
-			System.out.println("\t - " + presenceGlobaleHAM[i] + " fois dans les HAM");			
-		}
-		
 	}
 
 	/**
@@ -238,6 +212,73 @@ public class filtreAntiSpam {
 		// System.out.println("Termine. Nombre de mots trouvés dans le message : "+nbm);
 
 		return presence;
+	}
+	/**
+	 * 
+	 * @param nbham nombre de message ham a apprendre
+	 * @param nbspam nombre de message spam a apprendre
+	 */
+	public static void apprentissage(int nbham,int nbspam){
+		
+		System.out.println("Apprentissage...");
+
+		// parcourt des spam de la base d'apprentissage
+		presenceGlobaleSPAM = new int[dictionnaire.length];
+		String directory = System.getProperty("user.dir");
+		File spamBaseAppDirectory = new File(directory + "/base/baseapp/spam/");
+		//on recupère le tableau de fichier de spam
+		File[] tabSpam=spamBaseAppDirectory.listFiles();
+		File fspam;
+		/**MODIF**/
+		for(int j=0;j<nbspam-1;j++){
+			fspam=tabSpam[j];
+			//lecture d'un message
+			int[] presence = lire_message("/base/baseapp/spam/" + fspam.getName());
+			for (int i = 0; i < presenceGlobaleSPAM.length; i++) {
+				presenceGlobaleSPAM[i] += presence[i];
+			}
+		}
+		/*********/
+		
+		/*for (File f : spamBaseAppDirectory.listFiles()) {
+			System.out.println(tabFile[20]);
+			//lecture d'un message
+			int[] presence = lire_message("/base/baseapp/spam/" + f.getName());
+
+			for (int i = 0; i < presenceGlobaleSPAM.length; i++) {
+				presenceGlobaleSPAM[i] += presence[i];
+			}
+		}*/
+		
+		// parcourt des ham de la base d'apprentissage
+		presenceGlobaleHAM = new int[dictionnaire.length];
+		File hamBaseAppDirectory = new File(directory + "/base/baseapp/ham/");
+		//on recupère le tableau de fichier de ham
+		File[] tabHam=spamBaseAppDirectory.listFiles();
+		File fham;
+		for(int j=0;j<nbham-1;j++){
+			fham=tabHam[j];
+			//lecture d'un message
+			int[] presence = lire_message("/base/baseapp/ham/" + fham.getName());
+			for (int i = 0; i < presenceGlobaleHAM.length; i++) {
+				presenceGlobaleHAM[i] += presence[i];
+			}
+		}
+		/*for (File f : spamBaseAppDirectory.listFiles()) {
+			//lecture d'un message
+			int[] presence = lire_message("/base/baseapp/ham/" + f.getName());
+
+			for (int i = 0; i < presenceGlobaleHAM.length; i++) {
+				presenceGlobaleHAM[i] += presence[i];
+			}
+		}*/
+		 
+		for (int i = 0; i < dictionnaire.length; i++) {
+			System.out.println("Le mot " + dictionnaire[i] + " apparait :");
+			System.out.println("\t - " + presenceGlobaleSPAM[i] + " fois dans les SPAM");			
+			System.out.println("\t - " + presenceGlobaleHAM[i] + " fois dans les HAM");			
+		}
+		
 	}
 	
 }
