@@ -236,7 +236,7 @@ public class apprend_filtre {
 		for(int j=0;j<nbspam;j++){
 			fspam=tabSpam[j];
 			//lecture d'un message
-			int[] presence = lire_message("/base/baseapp/spam/" + fspam.getName());
+			int[] presence = lire_message("" + dossierApp + "/spam/" + fspam.getName());
 			for (int i = 0; i < probaPresenceMotSPAM.length; i++) {
 				probaPresenceMotSPAM[i] += presence[i];
 			}
@@ -259,14 +259,14 @@ public class apprend_filtre {
 		
 		// parcourt des ham de la base d'apprentissage
 		double[] probaPresenceMotHAM = new double[dictionnaire.length];
-		File hamBaseAppDirectory = new File(directory + "/base/" + dossierApp + "/ham/");
+		File hamBaseAppDirectory = new File(directory + dossierApp + "/ham/");
 		//on recupère le tableau de fichier de ham
 		File[] tabHam=hamBaseAppDirectory.listFiles();
 		File fham;
 		for(int j=0;j<nbham;j++){
 			fham=tabHam[j];
 			//lecture d'un message
-			int[] presence = lire_message("/base/baseapp/ham/" + fham.getName());
+			int[] presence = lire_message("" + dossierApp + "/ham/" + fham.getName());
 			for (int i = 0; i < probaPresenceMotHAM.length; i++) {
 				probaPresenceMotHAM[i] += presence[i];
 			}
