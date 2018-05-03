@@ -34,7 +34,7 @@ public class apprend_filtre_enligne {
         // On recalcule les valeurs d'un des deux tableaux de probabilités
         // Si le parametre est SPAM, met à jour le tableau probaPresenceMotSPAM
         // sinon met à jour le tableau probaPresenceMotHAM
-        recalcul_valeurs(args[1], args[2].equals("SPAM"));
+        recalcul_valeurs("/" + args[1], args[2].equals("SPAM"));
 
         // On sauvegarde dans le fichier classifieur passe en parametre
         sauvegarde("" + directory + "/" + args[0]);
@@ -88,6 +88,7 @@ public class apprend_filtre_enligne {
                 probaPresenceMotSPAM[i] = (double)(Math.round(probaPresenceMotSPAM[i] * (nbSpamApp + (epsilon + epsilon))) + presence[i]) / (nbSpamApp + 1 + (epsilon + epsilon));
             }
 
+            // On augmente le nombre de spams traités
             nbSpamApp++;
         } else {
             for (int i = 0; i < probaPresenceMotHAM.length; i++) {
@@ -96,6 +97,7 @@ public class apprend_filtre_enligne {
                 probaPresenceMotHAM[i] = (double)(Math.round(probaPresenceMotHAM[i] * (nbHamApp + (epsilon + epsilon))) + presence[i]) / (nbHamApp + 1 + (epsilon + epsilon));
             }
 
+            // On augmente le nombre de hams traités
             nbHamApp++;
         }
 

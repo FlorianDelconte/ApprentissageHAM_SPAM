@@ -175,7 +175,7 @@ public class apprend_filtre {
 		// parcourt des spam de la base d'apprentissage
 		probaPresenceMotSPAM = new double[dictionnaire.length];
 		String directory = System.getProperty("user.dir");
-		File spamBaseAppDirectory = new File(directory + dossierApp + "/spam/");
+		File spamBaseAppDirectory = new File(directory + "/" + dossierApp + "/spam/");
 		//on recupère le tableau de fichier de spam
 		File[] tabSpam=spamBaseAppDirectory.listFiles();
 		File fspam;
@@ -183,7 +183,7 @@ public class apprend_filtre {
 		for(int j=0;j<nbspam;j++){
 			fspam=tabSpam[j];
 			//lecture d'un message
-			int[] presence = lire_message("" + dossierApp + "/spam/" + fspam.getName());
+			int[] presence = lire_message("/" + dossierApp + "/spam/" + fspam.getName());
 			for (int i = 0; i < probaPresenceMotSPAM.length; i++) {
 				probaPresenceMotSPAM[i] += presence[i];
 			}
@@ -195,14 +195,14 @@ public class apprend_filtre {
 		
 		// parcourt des ham de la base d'apprentissage
 		probaPresenceMotHAM = new double[dictionnaire.length];
-		File hamBaseAppDirectory = new File(directory + dossierApp + "/ham/");
+		File hamBaseAppDirectory = new File(directory + "/" + dossierApp + "/ham/");
 		//on recupère le tableau de fichier de ham
 		File[] tabHam=hamBaseAppDirectory.listFiles();
 		File fham;
 		for(int j=0;j<nbham;j++){
 			fham=tabHam[j];
 			//lecture d'un message
-			int[] presence = lire_message("" + dossierApp + "/ham/" + fham.getName());
+			int[] presence = lire_message("/" + dossierApp + "/ham/" + fham.getName());
 			for (int i = 0; i < probaPresenceMotHAM.length; i++) {
 				probaPresenceMotHAM[i] += presence[i];
 			}
@@ -211,7 +211,7 @@ public class apprend_filtre {
 		for (int i = 0; i < probaPresenceMotHAM.length; i++) {
 			probaPresenceMotHAM[i] = (probaPresenceMotHAM[i] + epsilon) / (nbham + (epsilon + epsilon));
 		}
-		
+
 		/**for (int i = 0; i < dictionnaire.length; i++) {
 			System.out.println("Le mot " + dictionnaire[i] + " apparait :");
 			System.out.println("\t - " + presenceGlobaleSPAM[i] + " fois dans les SPAM");			

@@ -47,7 +47,7 @@ public class filtreAntiSpam {
 			String fileName = System.getProperty("user.dir");
 			fileName += "/" + args[0];
 			chargement_classifieur(fileName);
-			int[] presence = lire_message(args[1]);
+			int[] presence = lire_message("/" + args[1]);
 			if (testMessageX(presence)) {
 				System.out.println("D'après '"+ args[0] + "', le message '" + args[1] + "' est un SPAM !");
 			} else {
@@ -348,7 +348,7 @@ public class filtreAntiSpam {
 	}
 	public static void test(String baseDirectory, int nbSpamTest,int nbHamTest){
 		String directory = System.getProperty("user.dir");
-		File hamBaseTestDirectory = new File(directory + baseDirectory + "/ham/");
+		File hamBaseTestDirectory = new File(directory + "/" + baseDirectory + "/ham/");
 		File[] tabHam=hamBaseTestDirectory.listFiles();
 		File fham;
 		System.out.println("TEST :");
@@ -357,7 +357,7 @@ public class filtreAntiSpam {
 		for(int i=0;i<nbHamTest;i++){
 			fham=tabHam[i];
 			//lecture d'un message dans la base de test
-			int[] presence = lire_message("/base/basetest/ham/" + fham.getName());
+			int[] presence = lire_message("/" + baseDirectory + "/ham/" + fham.getName());
 			if(testMessageX(presence)){
 				System.out.println("HAM numéro "+i+" identifié comme un SPAM ***erreur***");
 				errHam++;
@@ -367,13 +367,13 @@ public class filtreAntiSpam {
 		}
 		//TEST de SPAM
 		int errSpam=0;
-		File spamBaseTestDirectory = new File(directory + "/base/basetest/spam/");
+		File spamBaseTestDirectory = new File(directory + "/" + baseDirectory + "/spam/");
 		File[] tabSpam=spamBaseTestDirectory.listFiles();
 		File fspam;
 		for(int i=0;i<nbSpamTest;i++){
 			fspam=tabSpam[i];
 			//lecture d'un message dans la base de test
-			int[] presence = lire_message("/base/basetest/spam/" + fspam.getName());
+			int[] presence = lire_message("/" + baseDirectory + "/spam/" + fspam.getName());
 			if(testMessageX(presence)){
 				System.out.println("SPAM numéro "+i+" identifié comme un SPAM");
 			}else{
