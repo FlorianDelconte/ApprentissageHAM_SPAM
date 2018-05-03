@@ -211,7 +211,7 @@ public class apprend_filtre {
 		for (int i = 0; i < probaPresenceMotHAM.length; i++) {
 			probaPresenceMotHAM[i] = (probaPresenceMotHAM[i] + epsilon) / (nbham + (epsilon + epsilon));
 		}
-		 
+		
 		/**for (int i = 0; i < dictionnaire.length; i++) {
 			System.out.println("Le mot " + dictionnaire[i] + " apparait :");
 			System.out.println("\t - " + presenceGlobaleSPAM[i] + " fois dans les SPAM");			
