@@ -102,61 +102,25 @@ public class filtreAntiSpam {
 		BufferedReader br = null;
 		//la ligne courante
 		String ligne;
-		
-		/*** MODIF ***/
 
 		ArrayList<String> dictionnaireListe = new ArrayList<>();
-
-		/*************/
 
 		try{
 
 			br = new BufferedReader(new FileReader(fileName));
 
-			int i=0;
-
 			//on parcourt jusqu'a la fin du fichier pour compter le nombre de ligne -> permet d'avoirs la taille du tableau dictionnaire
 			while ((ligne = br.readLine()) != null) {
 				if(ligne.trim().length()>=3){
-					i++;
-
-					/*** MODIF ***/
 
 					dictionnaireListe.add(ligne.toUpperCase().trim());
 
-					/*************/
 				}
 			}
-
-			/*** MODIF ***/
 
 			tailleDictionnaire = dictionnaireListe.size();
 			dictionnaire = new String[tailleDictionnaire];
 			dictionnaire = dictionnaireListe.toArray(dictionnaire);
-
-			/*************/
-
-			/*
-			//initialisation du tableau
-			dictionnaire=new String[i];
-			//on remet a 0 le compteur et on réinitialise le buffredReader
-			i=0;
-			br = new BufferedReader(new FileReader(fileName));
-			//on parcourt jusqu'a la fin du fichier et on ajouter chaque ligne au dico
-			while ((ligne = br.readLine()) != null) {
-				
-				//on recupère les mots supérieur a 2 lettres
-				if(ligne.length()>=3){
-					//On ajoute le mot au dico
-					dictionnaire[i]=ligne;
-					//on passe la case suivante du tableau
-					i++;
-				}
-			}
-			*/
-
-			// avec modif : 6 milliseconds pour dico à 950 mots
-			// sans modif : 8 milliseconds ____________________
 
 		}catch(IOException e){
 			//On affiche l'exception
@@ -201,36 +165,8 @@ public class filtreAntiSpam {
 
 			br = new BufferedReader(new FileReader(fileName));
 
-			// PREMIERE VERSION : on prend chaque mot du dictionnaire
-			// 					et on regarde si il est dans le fichier
-
-			/*
-			//mot a rechercher
-			String motARechercher;
-			//D'abord on parcout le dictionnaire
-			for(int i=0;i<tailleDictionnaire;i++){
-				//on recupère le mot du dictionnaire qu'on cherche
-				motARechercher=dictionnaire[i];
-
-				//enssuite on parcourt tout le fichier pour trouver le mot
-				//TODO : parcourir jusqu'a ce qu'on a trouvé le mot
-				while ((ligne = br.readLine()) != null ) {
-					
-					//TODO :C'est pas ouf comme condition je crois faut changer ça pour mieux reperer les mots
-					//si la ligne en majuscule contient le mot		
-					if(ligne.toUpperCase().contains(dictionnaire[i])){
-						//on met à 1 le tableau de presence a la postion du mot du dictionnaire 
-						presence[i]=1;
-						//on incremente le nombre de mot trouvé 
-						nbm++;
-					}
-				} 
-			}
-			*/
-			
-
-			// DEUXIEME VERSION : on parcourt le fichier, et on regarde
-			// 					si chaque mot est dans le dictionnaire
+			// on parcourt le fichier, et on regarde
+			// si chaque mot est dans le dictionnaire
 			
 			// On parcourt chaque ligne du fichier
 			while ((ligne = br.readLine()) != null ) {	
@@ -258,9 +194,6 @@ public class filtreAntiSpam {
 					}
 				}
 			}
-
-			// avec première version : environ 25 millisecondes mais 6 mots trouvés
-			// avec deuxième version : environ 35 millisecondes mais 60 mots trouvés
 
 		}catch(Exception e){
 			//On affiche l'exception
@@ -311,17 +244,6 @@ public class filtreAntiSpam {
 			probaPresenceMotSPAM[i] = (probaPresenceMotSPAM[i] + 1) / (nbspam + 2);
 		}
 		
-		
-		/*for (File f : spamBaseAppDirectory.listFiles()) {
-			System.out.println(tabFile[20]);
-			//lecture d'un message
-			int[] presence = lire_message("/base/baseapp/spam/" + f.getName());
-
-			for (int i = 0; i < probaPresenceMotSPAM.length; i++) {
-				probaPresenceMotSPAM[i] += presence[i];
-			}
-		}*/
-		
 		// parcourt des ham de la base d'apprentissage
 		probaPresenceMotHAM = new double[tailleDictionnaire];
 		File hamBaseAppDirectory = new File(directory + "/base/baseapp/ham/");
@@ -340,15 +262,6 @@ public class filtreAntiSpam {
 		for (int i = 0; i < probaPresenceMotHAM.length; i++) {
 			probaPresenceMotHAM[i] = (probaPresenceMotHAM[i] + 1) / (nbham + 2);
 		}
-
-		/*for (File f : spamBaseAppDirectory.listFiles()) {
-			//lecture d'un message
-			int[] presence = lire_message("/base/baseapp/ham/" + f.getName());
-
-			for (int i = 0; i < probaPresenceMotHAM.length; i++) {
-				probaPresenceMotHAM[i] += presence[i];
-			}
-		}*/
 		 
 		/**for (int i = 0; i < tailleDictionnaire; i++) {
 			System.out.println("Le mot " + dictionnaire[i] + " apparait :");
@@ -370,41 +283,12 @@ public class filtreAntiSpam {
 	 * @return true si c'est un SPAM
 	 */
 	public static boolean testMessageX(int[] presence){
+		// EXPLICATIONS :
+
 		//le nouvel email est-il un SPAM ?
 		//pour le calcul des probabilité a Posteriori on a besoin de : P(X=x)=P(X=x|Y=SPAM)P(Y=SPAM)+P(X=x|Y=HAM)P(Y=HAM) (--->Formule des proba total)
-
-		/*
-		String nomFichier = "/base/basetest/spam/0.txt";
-
 		// P(X=x|Y=SPAM)=produit de Bspam par Bham (sur j allant de 1 à nb nbspam)-->voir p52
-
-		// P(X = x | Y = SPAM)
-		double P_X_YSpam = 1;
-		int[] presence = lire_message(nomFichier);
-		for (int i = 0; i < tailleDictionnaire; i++) {
-			if (presence[i] == 1) 
-				P_X_YSpam *= probaPresenceMotSPAM[i];
-			else
-				P_X_YSpam *= 1. - probaPresenceMotSPAM[i];
-		}
-
-		System.out.println("P(X = x | Y = SPAM) = " + P_X_YSpam);
-
 		// P(X=x|Y=HAM)=produit de Bspam par Bham (sur j allant de 1 à nb nbham)-->voir p52
-
-		double P_X_YHam = 1;
-		presence = lire_message(nomFichier);
-		for (int i = 0; i < tailleDictionnaire; i++) {
-			if (presence[i] == 1) 
-				P_X_YHam *= probaPresenceMotHAM[i];
-			else
-				P_X_YHam *= 1. - probaPresenceMotHAM[i];
-		}
-
-		System.out.println("P(X = x | Y = HAM) = " + P_X_YHam);
-
-		*/
-
 		//Le truc c'est que si on fait le produit de truc qui se rapporche beaucoup de 0 java vas simplifier en faisant 0*0
 		//Donc P(X=x|Y=SPAM)=LOG(produit de Bspam par Bham )(sur j allant de 1 à nb nbspam)
 		//Le truc c'est que si on fait le produit de truc qui se rapporche beaucoup de 0 java vas simplifier en faisant 0*0=0 la tete a toto quoi
@@ -412,6 +296,8 @@ public class filtreAntiSpam {
 		//ET   P(X=x|Y=HAM)=LOG(produit de Bspam par Bham )(sur j allant de 1 à nb nbham)--> logarithme d'un produit= somme des logarithme
 		//DONC : 	P(X=x|Y=SPAM)=LOG( Bspam)+ LOG(Bham) (sur j allant de 1 à nb nbspam)
 		//ET   		P(X=x|Y=HAM)=LOG(Bspam) + LOG(Bham)(sur j allant de 1 à nb nbham)
+
+
 		boolean b;
 		double P_Xx_YSPAM=0;	
 		for(int j=0;j<presence.length;j++){
