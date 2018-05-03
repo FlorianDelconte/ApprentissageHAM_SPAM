@@ -7,16 +7,29 @@ import java.util.ArrayList;
 import java.io.IOException;
 
 public class apprend_filtre {
-	private final static String regex = "[\\s\\<\\>\\[\\]\\,\\?\\;\\.\\:\\/\\!\\§\\*\\µ\\$\\£\\^\\¨\\%\\@\\)\\(\\=\\+\\{\\'\\}\\|\\#\\-\\\"\\.\\_\\`\\[\\]\\&\\°\\\\[0-9]]+";    
+	private final static String regex = "[\\s\\<\\>\\[\\]\\,\\?\\;\\.\\:\\/\\!\\§\\*\\µ\\$\\£\\^\\¨\\%\\@\\)\\(\\=\\+\\{\\'\\}\\|\\#\\-\\\"\\.\\_\\`\\[\\]\\&\\°\\\\[0-9]]+";
 
-    //c'est mieux un tableau plutot qu'une liste car on vas faire beaucoup d'accès au tableau
+	final public static int epsilon = 1;
+
+	private static int nbSpamApp, nbHamApp;
+
+	//c'est mieux un tableau plutot qu'une liste car on vas faire beaucoup d'accès au tableau
 	private static String[] dictionnaire;
+	// variable utilisee lors du chargement d'un classifieur existant
+	private static int tailleDictionnaire;
+	// retient, pour chaque mot du dictionnaire, la probabilité de présence parmi tous les spam/ham
+	private static double[] probaPresenceMotSPAM;
+	private static double[] probaPresenceMotHAM;	
+	//probabilité a priori
+	private static double P_Yspam;
+	private static double P_Yham;
 
     public static void main(String[] args) {
         if (args.length == 4) {
             charger_dictionnaire();
             String fileName = System.getProperty("user.dir");
-            apprentissage("" + fileName + "/" + args[0], args[1],Integer.parseInt(args[2]),Integer.parseInt(args[3]));
+			apprentissage(args[1],Integer.parseInt(args[2]),Integer.parseInt(args[3]));
+			sauvegarde("" + fileName + "/" + args[0]);
 
             System.out.println("Classifieur enregistré dans '" + args[0] + "'.");
         } else {
@@ -152,12 +165,15 @@ public class apprend_filtre {
 	 * @param nbham nombre de message ham a apprendre
 	 * @param nbspam nombre de message spam a apprendre
 	 */
-	public static void apprentissage(String classifieur, String dossierApp, int nbspam,int nbham){
+	public static void apprentissage(String dossierApp, int nbspam,int nbham){
 		
 		System.out.println("Apprentissage sur " + nbspam + " SPAMs et " + nbham + " HAMs...");
 
+		nbSpamApp = nbspam;
+		nbHamApp = nbham;
+
 		// parcourt des spam de la base d'apprentissage
-		double[] probaPresenceMotSPAM = new double[dictionnaire.length];
+		probaPresenceMotSPAM = new double[dictionnaire.length];
 		String directory = System.getProperty("user.dir");
 		File spamBaseAppDirectory = new File(directory + dossierApp + "/spam/");
 		//on recupère le tableau de fichier de spam
@@ -174,11 +190,11 @@ public class apprend_filtre {
 		}
 
 		for (int i = 0; i < probaPresenceMotSPAM.length; i++) {
-			probaPresenceMotSPAM[i] = (probaPresenceMotSPAM[i] + 1) / (nbspam + 2);
+			probaPresenceMotSPAM[i] = (probaPresenceMotSPAM[i] + epsilon) / (nbspam + (epsilon + epsilon));
 		}
 		
 		// parcourt des ham de la base d'apprentissage
-		double[] probaPresenceMotHAM = new double[dictionnaire.length];
+		probaPresenceMotHAM = new double[dictionnaire.length];
 		File hamBaseAppDirectory = new File(directory + dossierApp + "/ham/");
 		//on recupère le tableau de fichier de ham
 		File[] tabHam=hamBaseAppDirectory.listFiles();
@@ -193,7 +209,7 @@ public class apprend_filtre {
 		}
 
 		for (int i = 0; i < probaPresenceMotHAM.length; i++) {
-			probaPresenceMotHAM[i] = (probaPresenceMotHAM[i] + 1) / (nbham + 2);
+			probaPresenceMotHAM[i] = (probaPresenceMotHAM[i] + epsilon) / (nbham + (epsilon + epsilon));
 		}
 		 
 		/**for (int i = 0; i < dictionnaire.length; i++) {
@@ -203,14 +219,22 @@ public class apprend_filtre {
 		}*/
 		
 		//Calcul des probabilité a priori : P(Y=SPAM)=(nombre de SPAM)/(nombre dexemple)
-		double P_Yspam=(double)nbspam/(nbspam+nbham);
+		P_Yspam=(double)nbspam/(nbspam+nbham);
 		//P(Y=HAM)=1-P(Y=SPAM)
-		double P_Yham=1.-P_Yspam;
+		P_Yham=1.-P_Yspam;
+
 		//System.out.println("proba a priori de spam :"+P_Yspam);
-        //System.out.println("proba a priori de ham :"+P_Yham);
-        
+        //System.out.println("proba a priori de ham :"+P_Yham);	
+	
+	}
+
+	public static void sauvegarde(String classifieur) {
+		// Sauvegarde de l'apprentissage dans un fichier
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(classifieur));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(classifieur));
+			
+			bw.append("" + nbSpamApp + "\n");
+			bw.append("" + nbHamApp + "\n");
 
             bw.append("" + dictionnaire.length + "\n");
 

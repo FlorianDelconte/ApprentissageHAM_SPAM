@@ -8,11 +8,15 @@ import java.io.File;
 public class filtreAntiSpam {
 	private final static String regex = "[\\s\\<\\>\\[\\]\\,\\?\\;\\.\\:\\/\\!\\§\\*\\µ\\$\\£\\^\\¨\\%\\@\\)\\(\\=\\+\\{\\'\\}\\|\\#\\-\\\"\\.\\_\\`\\[\\]\\&\\°\\\\[0-9]]+";
 
+	final public static int epsilon = 1;
+
+	private static int nbSpamApp, nbHamApp;
+
 	//c'est mieux un tableau plutot qu'une liste car on vas faire beaucoup d'accès au tableau
 	private static String[] dictionnaire;
 	// variable utilisee lors du chargement d'un classifieur existant
 	private static int tailleDictionnaire;
-	// retient, pour chaque mot du dictionnaire, le nombre de fichier où il est présent
+	// retient, pour chaque mot du dictionnaire, la probabilité de présence parmi tous les spam/ham
 	private static double[] probaPresenceMotSPAM;
 	private static double[] probaPresenceMotHAM;	
 	//probabilité a priori
@@ -31,7 +35,10 @@ public class filtreAntiSpam {
 			System.out.println("combien de HAM dans la base d'apprentissage ? ");
 			int nbham=sc.nextInt();
 
-			test_base(args[0], nbspam, nbham, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+			nbSpamApp = nbspam;
+			nbHamApp = nbham;
+
+			test_base(args[0], nbSpamApp, nbHamApp, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
 		}
 
 		// On charge le classifieur depuis le nom de fichier en parametre 
@@ -60,7 +67,10 @@ public class filtreAntiSpam {
 
 	public static void chargement_classifieur(String fileName) {
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(fileName));	
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
+			
+			nbSpamApp = Integer.parseInt(br.readLine());
+			nbHamApp = Integer.parseInt(br.readLine());
 
 			tailleDictionnaire = Integer.parseInt(br.readLine());
 
@@ -241,7 +251,7 @@ public class filtreAntiSpam {
 		}
 
 		for (int i = 0; i < probaPresenceMotSPAM.length; i++) {
-			probaPresenceMotSPAM[i] = (probaPresenceMotSPAM[i] + 1) / (nbspam + 2);
+			probaPresenceMotSPAM[i] = (probaPresenceMotSPAM[i] + epsilon) / (nbspam + (epsilon + epsilon));
 		}
 		
 		// parcourt des ham de la base d'apprentissage
@@ -260,7 +270,7 @@ public class filtreAntiSpam {
 		}
 
 		for (int i = 0; i < probaPresenceMotHAM.length; i++) {
-			probaPresenceMotHAM[i] = (probaPresenceMotHAM[i] + 1) / (nbham + 2);
+			probaPresenceMotHAM[i] = (probaPresenceMotHAM[i] + epsilon) / (nbham + (epsilon + epsilon));
 		}
 		 
 		/**for (int i = 0; i < tailleDictionnaire; i++) {
